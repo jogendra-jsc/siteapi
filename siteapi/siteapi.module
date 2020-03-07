@@ -1,0 +1,66 @@
+<?php
+/**
+ * This file has the code for custom module of site api key.
+ * @Author :- Jogendra 
+ *
+ */
+
+/**
+ * This Function implements the existing form alteration. This function extends the existing form of system configuration.
+ */
+function siteapi_form_system_site_information_settings_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+  // get the configuration.
+  $config = \Drupal::config('siteapi.settings');
+
+  // checking if api key is set and not empty means user has set it already.
+  if(!empty($config->get('apikey')) ) {
+    //set the already added key.
+    $key =  $config->get('apikey');
+  }else {
+    // User has not set any key yet.
+    $key = t('API key has not set yet');
+  }
+
+   // Create the form and field for API key.
+  $form['site_api']['site_api_key'] = [
+                                        '#type' => 'textfield',
+                                        '#title' => t('Site API Key'),
+                                        '#default_value' => $key,
+                                      ];
+
+// if the key is set then change the button to 'Update Configuration' instead of 'Save Configuration'.
+  if ( !empty($config->get('apikey')) && $key != 'API key has not set yet' ) {
+    $form['actions']['submit']['#value'] = t('Update Configuration');
+  }
+
+  // submit the form to custom handler.
+  $form['#submit'][] = 'siteapi_submit_handler';
+}
+
+
+/**
+ * Custom Submit handler for FormID system_site_information_settings.
+ */
+function siteapi_submit_handler(&$form,\Drupal\Core\Form\FormStateInterface $form_state ) {
+
+
+  // Get the value set in form for api key. 
+  $api_key = $form_state->getValue('site_api_key');
+  // Set the siteapikey value in config.
+  \Drupal::configFactory()->getEditable('siteapi.settings')->set('apikey', $api_key)->save();;
+  // check if empty key.
+  if (empty($api_key) || $api_key === 'API key has not set yet' ) {
+    drupal_set_message(t('Site API key is not set.Please set the API key.'), 'warning');
+  }else {
+    drupal_set_message(t('Site key has been set successfully to :  @api_key ', array('@api_key' => $api_key)));
+  }
+}
+
+/**
+ * Implements hook_uninstall(). This function will handle the un-installation of module.
+ */
+function siteapi_uninstall(){
+    // Remove the previously set Site API Key configuration
+    \Drupal::configFactory()->getEditable('siteapi.configuration')->delete();
+}

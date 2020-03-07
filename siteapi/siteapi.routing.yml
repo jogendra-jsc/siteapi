@@ -1,0 +1,7 @@
+siteapi_urltest:
+  path: 'page_json/{apiKey}/{id}'
+  defaults:
+    _controller: '\Drupal\siteapi\Controller\JSONResponseController::handleRequest'
+    _title: 'Site API Key Access Test Page'
+  requirements:
+    _permission: 'access content'
